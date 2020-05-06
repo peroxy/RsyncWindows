@@ -12,10 +12,12 @@ namespace RsyncBackup
             try
             {
                 Console.WriteLine("RSync backup started.");
-                var (host, username, password, folders) = GetConfiguration();
+                var configuration = GetConfiguration();
                 string localIp = NetworkingHelper.GetLocalIPAddress();
 
-                using (var client = new SshClient(host, username, password))
+                Console.WriteLine("Backing up ");
+
+                using (var client = new SshClient(configuration.BackupHostName, configuration.Username, configuration.Password))
                 {
                     client.Connect();
                     using var command = client.CreateCommand("ls -al");
@@ -35,36 +37,31 @@ namespace RsyncBackup
             }
         }
 
-        private static (string host, string username, string password, string[] folders) GetConfiguration()
+        private static BackupConfiguration GetConfiguration()
         {
             var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
             .AddUserSecrets(typeof(Program).Assembly)
             .Build();
 
-            string host = configuration["BackupHostName"];
-            string username = configuration["Username"];
-            string password = configuration["Password"];
-            string[] folders = configuration.GetSection("DeltaCopyFolderAliases").GetChildren().Select(x => x.Value).ToArray();
-
-            if (string.IsNullOrWhiteSpace(host))
+            var config = configuration.GetSection("BackupConfiguration").Get<BackupConfiguration>();
+            if (string.IsNullOrWhiteSpace(config.BackupHostName))
             {
                 throw new ArgumentException("Host name cannot be null or whitespace.");
             }
-            if (string.IsNullOrWhiteSpace(username))
+            if (string.IsNullOrWhiteSpace(config.Username))
             {
                 throw new ArgumentException("Username cannot be null or whitespace.");
             }
-            if (string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(config.Password))
             {
                 throw new ArgumentException("Password cannot be null or whitespace.");
             }
-            if (folders == null || folders.Length == 0)
+            if (config.DeltaCopyFolderAliases == null || config.DeltaCopyFolderAliases.Length == 0)
             {
                 throw new ArgumentException("DeltaCopy folder aliases have to contain at least 1 folder.");
             }
 
-            return (host, username, password, folders);
+            return config;
         }
     }
 }
