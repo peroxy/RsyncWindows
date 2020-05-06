@@ -10,15 +10,21 @@ Use case scenario - you want to backup files on your Windows machine to a local 
 2. Open project in Visual Studio and set user secrets.json, should look like this:
 ```
 {
-  "BackupHostName": "domain.net",
-  "Username": "user",
-  "Password": "password"
+  "BackupConfiguration": {
+    "BackupHostName": "domain.net",
+    "Username": "user",
+    "Password": "password",
+    "DeltaCopyFolderAliases": [
+      {
+        "Alias": "backup",
+        "HostPath": "~/backup/folder1"
+      },
+      {
+        "Alias": "documents",
+        "HostPath": "~/backup/folder2"
+      }
+    ]
+  }
 }
  ```   
-4. Add delta copy aliases to appsettings.json:
-```   
-{
-  "DeltaCopyFolderAliases": [ "backup", "documents", "pictures", "videos" ]
-}
-```   
-5. Build and run.
+4. Build and run.
