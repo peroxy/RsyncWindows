@@ -1,6 +1,8 @@
 # RsyncWindows
 Backs up data on your Windows machine running DeltaCopy to specified host via SSH and rsync protocol.
 
+Use case scenario - you want to backup files on your Windows machine to a local Linux server and run this script manually or via task scheduler.
+
 ## How to run
 
 1. Clone project.
