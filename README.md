@@ -14,4 +14,4 @@ Backs up data on your Windows machine running DeltaCopy to specified host via SS
   "DeltaCopyFolderAliases": ["pictures", "videos", "documents"]
 }
  ```   
-3. Build and run.
+4. Build and run.
