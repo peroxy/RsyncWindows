@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Renci.SshNet;
 using System;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace RsyncBackup
 {
@@ -11,26 +14,58 @@ namespace RsyncBackup
         {
             try
             {
-                Console.WriteLine("RSync backup started.");
                 var configuration = GetConfiguration();
                 string localIp = NetworkingHelper.GetLocalIPAddress();
 
-                Console.WriteLine("Backing up ");
+                Colorful.Console.WriteLine("RSync backup started.", Color.Green);
+                Colorful.Console.WriteLine($"Backing up {localIp} to {configuration.BackupHostName}", Color.LightBlue);
+                Console.WriteLine("-----------------------------------------------------------------------------------------------");
+                Console.WriteLine("-----------------------------------------------------------------------------------------------");
 
                 using (var client = new SshClient(configuration.BackupHostName, configuration.Username, configuration.Password))
                 {
                     client.Connect();
-                    using var command = client.CreateCommand("ls -al");
-                    var asyncExecute = command.BeginExecute();
-                    command.OutputStream.CopyTo(Console.OpenStandardOutput());
-                    command.EndExecute(asyncExecute);
+
+                    foreach (var folder in configuration.DeltaCopyFolderAliases)
+                    {
+                        string commandText = $"rsync -avz --progress {localIp}::{folder.Alias} '{folder.HostPath}'";
+                        Colorful.Console.WriteLine($"Starting rsync for local DeltaCopy virtual directory with alias {folder.Alias} and host path {folder.HostPath}.", Color.Orange);
+                        Colorful.Console.WriteLine(commandText, Color.Orange);
+                        Console.WriteLine("-----------------------------------------------------------------------------------------------");
+                        
+                        using var command = client.CreateCommand(commandText);
+                        var result = command.BeginExecute();
+                        using (var reader = new StreamReader(command.OutputStream, Encoding.UTF8, true, 1024, true))
+                        {
+                            while (!result.IsCompleted || !reader.EndOfStream)
+                            {
+                                string line = reader.ReadLine();
+                                if (line != null)
+                                {
+                                    if (!line.Contains('%'))
+                                    {
+                                        Console.WriteLine(line);
+                                    } else
+                                    {
+                                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                                        Console.Write(line);
+                                    }
+                                }
+                            }
+                        }
+                        command.EndExecute(result);
+
+                        Colorful.Console.WriteLine($"Finished rsync for local DeltaCopy virtual directory with alias {folder.Alias} and host path {folder.HostPath}.", Color.Green);
+                    }
+
+                    client.Disconnect();
                 }
 
-                Console.WriteLine("Finished successfully.");
+                Colorful.Console.WriteLine("Finished successfully, exiting...", Color.Green);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected exception has occured: {ex.Message}");
+                Colorful.Console.WriteLine($"Unexpected exception has occured: {ex.Message}", Color.Red);
                 Console.WriteLine(ex);
                 Console.WriteLine("Exiting...");
                 return;
