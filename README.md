@@ -10,8 +10,13 @@ Backs up data on your Windows machine running DeltaCopy to specified host via SS
 {
   "BackupHostName": "domain.net",
   "Username": "user",
-  "Password": "password",
-  "DeltaCopyFolderAliases": ["pictures", "videos", "documents"]
+  "Password": "password"
 }
  ```   
-4. Build and run.
+4. Add delta copy aliases to appsettings.json:
+```   
+{
+  "DeltaCopyFolderAliases": [ "backup", "documents", "pictures", "videos" ]
+}
+```   
+5. Build and run.
