@@ -1,19 +1,32 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Renci.SshNet;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace RsyncBackup
+
+
 {
     internal class Program
     {
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool ShowWindow([In] IntPtr hWnd, [In] int nCmdShow);
+
         private static void Main(string[] args)
         {
             try
             {
+                // minimize console 
+                IntPtr handle = Process.GetCurrentProcess().MainWindowHandle;
+                ShowWindow(handle, 6);
+
                 var configuration = GetConfiguration();
                 string localIp = NetworkingHelper.GetLocalIPAddress();
 
@@ -24,7 +37,9 @@ namespace RsyncBackup
 
                 using (var client = new SshClient(configuration.BackupHostName, configuration.Username, configuration.Password))
                 {
+                    client.ConnectionInfo.Timeout = TimeSpan.FromHours(5);
                     client.Connect();
+                    client.CreateCommand("pkill -f rsync").Execute(); //kills all previous rsync processes, if this script has been terminated
 
                     foreach (var folder in configuration.DeltaCopyFolderAliases)
                     {
