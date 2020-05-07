@@ -43,7 +43,7 @@ namespace RsyncBackup
 
                     foreach (var folder in configuration.DeltaCopyFolderAliases)
                     {
-                        string commandText = $"rsync -avz --progress {localIp}::{folder.Alias} '{folder.HostPath}'";
+                        string commandText = $"rsync -avz --chmod=a=rwX --progress {localIp}::{folder.Alias} '{folder.HostPath}'";
                         Colorful.Console.WriteLine($"Starting rsync for local DeltaCopy virtual directory with alias {folder.Alias} and host path {folder.HostPath}.", Color.Orange);
                         Colorful.Console.WriteLine(commandText, Color.Orange);
                         Console.WriteLine("-----------------------------------------------------------------------------------------------");
