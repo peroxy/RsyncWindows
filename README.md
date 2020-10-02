@@ -7,7 +7,7 @@ Use case scenario - you want to backup files on your Windows machine to a local 
 
 1. Clone project.
 2. Make sure you have DeltaCopy server running on your Windows machine (as a Windows service) and virtual directories setup. Aliases of those directories are used in secrets.json project file.
-2. Open project in Visual Studio and set user secrets.json, should look like this:
+2. Open project in Visual Studio and set user secrets.json which should look like this:
 ```
 {
   "BackupConfiguration": {
